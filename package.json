@@ -15,7 +15,8 @@
     "jquery": "^3.5.1",
     "popper": "^1.0.1",
     "vue": "^2.6.11",
-    "vue-router": "^3.4.3"
+    "vue-router": "^3.4.3",
+    "vuex": "^3.5.1"
   },
   "browserslist": [
     "> 1%",

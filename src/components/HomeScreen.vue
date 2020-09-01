@@ -13,20 +13,20 @@
 
 <script>
 export default {
-  data() {
-    return {
-      nickname: ""
+  computed:  {
+    nickname: {
+      get() {
+        return this.$store.getters.nickname
+      },
+      set(value) {
+        this.$store.dispatch('setNickname', value)
+      }
     }
   },
   methods: {
     gotoMessenger() {
       console.log("nickname selected " + this.nickname)
-      this.$router.push({
-        name: "messenger",
-        params: {
-          nickname: this.nickname
-          }
-        })
+      this.$router.push({ name: "messenger" })
     }
   }
 }

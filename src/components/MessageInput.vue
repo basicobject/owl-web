@@ -8,8 +8,10 @@
 import TextMessage from "../models/TextMessage"
 
 export default {
-  props: {
-    nickname: String
+  computed: {
+    nickname() {
+      return this.$store.getters.nickname
+    }
   },
 
   data() {
@@ -21,7 +23,7 @@ export default {
   methods: {
     sendMessage() {
       console.log("Sending " + this.message)
-      this.$emit('newMessage', new TextMessage(this.nickname, this.message))
+      this.$store.dispatch("newMessage", new TextMessage(this.nickname, this.message))
       this.message = ""
     }
   }
