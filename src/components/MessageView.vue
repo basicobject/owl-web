@@ -1,6 +1,9 @@
 <template>
   <b-list-group>
-    <b-list-group-item v-for="(message, index) in messages" :key="index">{{message.sender}} : {{ message.text }}</b-list-group-item>
+    <b-list-group-item v-for="(message, index) in messages" :key="index">
+      {{message.sender.nickname}} : {{ message.text }}
+      <small v-if="message.isSent">Sent</small>
+    </b-list-group-item>
   </b-list-group>
 </template>
 

@@ -1,30 +1,36 @@
 
 const wsUrl = "ws://127.0.0.1:1338/affirm"
-const ws = new WebSocket(wsUrl)
 
-ws.onerror = (error) => console.log("Websocket connect error: " + wsUrl)
-
-ws.onclose = (event) => {
-  console.log(`Websocket closed, reconnecting ... ${retryAttempt}`)
-}
-
-ws.onopen = (event) => {
-  console.log("Websocket connection OK")
-}
-
-ws.onmessage = (event) => {
- console.log("Websocket new message received: " + event.data)
-}
-
-export default {
+const websocket = {
   isConnected: () => {
-    return (ws.readyState === WebSocket.OPEN)
+    return (this.ws.readyState === WebSocket.OPEN)
   },
-  send: (text) => ws.send(text),
-  receiveHandler: (handler) => {
-    ws.onmessage = (event) => {
+  send: (text) => this.ws.send(text),
+  setMessageHandler: (handler) => this.onmessageHandler = handler,
+  connect: () => {
+    const that = this
+    that.ws = new WebSocket(wsUrl)
+
+    that.ws.onerror = (error) => {
+      console.log("Websocket connect error: " + wsUrl)
+      that.ws.close()
+    }
+
+    that.ws.onclose = (event) => {
+      console.log(`Websocket closed, reconnecting ... ${event.reason}`)
+      setTimeout(function() {
+        websocket.connect()
+      }, 1000)
+    }
+    that.ws.onopen = (event) => {
+      console.log("Websocket connection OK")
+    }
+
+    that.ws.onmessage = (event) => {
       console.log("Websocket new message received: " + event.data)
-      handler(event)
+      that.onmessageHandler(event)
     }
   }
 }
+
+export default websocket

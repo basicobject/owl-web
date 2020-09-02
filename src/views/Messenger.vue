@@ -18,17 +18,27 @@ import ws from "../websocket"
 export default {
   name: "messenger",
   mounted() {
+    console.log(this.nickname)
+
+    if (this.nickname.length === 0) {
+      this.$router.push({ name: "home" })
+      return
+    }
+
     const user = new User(this.nickname)
     const that = this
+    const onmessage = (event) => {
+      that.$store.dispatch("receiveMessage", new TextMessage(new User("Server"), event.data))
+    }
+
+    ws.setMessageHandler(onmessage)
+    ws.connect()
 
     if(ws.isConnected) {
+      that.$store.dispatch("setCurrentUser", user)
       that.$store.dispatch("addUser", user)
-      ws.receiveHandler((event) => {
-        that.$store.dispatch("receiveMessage", new TextMessage("Server", event.data))
-      })
-
     } else {
-      console.log("Connection failed")
+      alert("Connection failed!! Check your internet connection")
     }
     console.log("Mounted")
   },
