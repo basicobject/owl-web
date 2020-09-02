@@ -30,7 +30,8 @@ const websocket = {
       console.log("Websocket new message received: " + event.data)
       that.onmessageHandler(event)
     }
-  }
+  },
+  disconnect: () => this.ws.close()
 }
 
 export default websocket

@@ -39,11 +39,17 @@ export const store = new Vuex.Store({
         ws.send(message.text)
         message.state = "sent"
       } else {
-        message.state = "not sent"
+        message.state = "not_sent"
+        ws.disconnect()
       }
 
       context.commit('newMessage', message)
     },
-    receiveMessage: (context, message) => context.commit("newMessage", message)
+    receiveMessage: (context, message) => context.commit("newMessage", message),
+    ping: (context) => {
+      if (ws.isConnected()) {
+        ws.send(`/PING ${context.state.nickname}`)
+      } else { ws.disconnect() }
+    }
   }
 })

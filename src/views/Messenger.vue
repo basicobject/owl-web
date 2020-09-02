@@ -25,10 +25,17 @@ export default {
       return
     }
 
+    const pingInterval = 5000
+
     const user = new User(this.nickname)
     const that = this
     const onmessage = (event) => {
-      that.$store.dispatch("receiveMessage", new TextMessage(new User("Server"), event.data, "received"))
+      if (event.data.startsWith("/")) {
+        console.log("Command message received " + event.data)
+      }
+      else {
+        that.$store.dispatch("receiveMessage", new TextMessage(new User("Server"), event.data, "received"))
+      }
     }
 
     ws.setMessageHandler(onmessage)
@@ -37,6 +44,9 @@ export default {
     if(ws.isConnected) {
       that.$store.dispatch("setCurrentUser", user)
       that.$store.dispatch("addUser", user)
+      clearInterval(pingInterval)
+      setInterval(() => that.$store.dispatch("ping"), pingInterval)
+
     } else {
       alert("Connection failed!! Check your internet connection")
     }
