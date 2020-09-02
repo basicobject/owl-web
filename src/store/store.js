@@ -37,7 +37,9 @@ export const store = new Vuex.Store({
     newMessage: (context, message) => {
       if (ws.isConnected()) {
         ws.send(message.text)
-        message.isSent = true
+        message.state = "sent"
+      } else {
+        message.state = "not sent"
       }
 
       context.commit('newMessage', message)

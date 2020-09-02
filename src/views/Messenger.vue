@@ -28,7 +28,7 @@ export default {
     const user = new User(this.nickname)
     const that = this
     const onmessage = (event) => {
-      that.$store.dispatch("receiveMessage", new TextMessage(new User("Server"), event.data))
+      that.$store.dispatch("receiveMessage", new TextMessage(new User("Server"), event.data, "received"))
     }
 
     ws.setMessageHandler(onmessage)
