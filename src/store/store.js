@@ -22,7 +22,8 @@ export const store = new Vuex.Store({
     setNickname: (state, value) => state.nickname = value,
     setCurrentUser: (state, user) => state.currentUser = user,
     addUser: (state, user) => state.users.push(user),
-    newMessage: (state, message) => state.messages.push(message)
+    newMessage: (state, message) => state.messages.push(message),
+    setSessions: (state, users) => state.users = users
   },
   actions: {
     setNickname: (context, value) => context.commit("setNickname", value),
@@ -45,11 +46,44 @@ export const store = new Vuex.Store({
 
       context.commit('newMessage', message)
     },
-    receiveMessage: (context, message) => context.commit("newMessage", message),
+    receiveMessage: (context, message) => {
+      console.log("Got message")
+      console.log(message)
+
+      let response = JSON.parse(message)
+
+      switch(response.event) {
+        case "JOIN":
+          console.log(response.body)
+          context.commit("setSessions", response.body.SessionInfo.sessions)
+
+          const currentUser = response.body.SessionInfo.sessions.find((s) => s.nickname == context.state.nickname)
+          context.commit("setCurrentUser", currentUser)
+
+          const pingInterval = 5000
+          const that = this
+
+          clearInterval(pingInterval)
+          setInterval(() => store.dispatch("ping"), pingInterval)
+
+          break;
+        case "PONG":
+          console.log("PONG")
+          break;
+        case "PLAIN":
+          console.log(response.body)
+          break;
+        default: console.log("Unknown event " + response.event)
+      }
+    },
     ping: (context) => {
       if (ws.isConnected()) {
-        ws.send(`/PING ${context.state.nickname}`)
+        ws.send(`/PING ${context.state.currentUser.userId}`)
       } else { ws.disconnect() }
+    },
+    join: (context, nickname) => {
+      context.commit("setNickname", nickname)
+      ws.send(`/JOIN ${nickname}`)
     }
   }
 })

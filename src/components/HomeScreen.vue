@@ -12,6 +12,8 @@
 </template>
 
 <script>
+import ws from "../websocket"
+
 export default {
   computed:  {
     nickname: {
@@ -25,8 +27,23 @@ export default {
   },
   methods: {
     gotoMessenger() {
-      console.log("nickname selected " + this.nickname)
-      this.$router.push({ name: "messenger" })
+      const that = this
+      if(that.nickname.length === 0) { return; }
+      console.log("nickname selected " + that.nickname)
+
+      const onmessage = (event) => that.$store.dispatch("receiveMessage", event.data)
+      ws.setMessageHandler(onmessage)
+      ws.connect()
+
+      setTimeout(() => {
+        if(ws.isConnected) {
+          that.$store.dispatch("join", that.nickname)
+        } else {
+          alert("Connection failed!! Check your internet connection")
+        }
+
+        that.$router.push({ name: "messenger" })
+      }, 1000)
     }
   }
 }
