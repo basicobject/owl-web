@@ -26,7 +26,9 @@ export default {
   methods: {
     sendMessage() {
       console.log("Sending " + this.message)
-      this.$store.dispatch("newMessage", new TextMessage(this.currentUser, this.message, "sending"))
+      let payload = new TextMessage(this.currentUser, this.message, "sending")
+      console.log(payload)
+      this.$store.dispatch("sendMessage", payload)
       this.message = ""
     }
   }

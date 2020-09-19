@@ -1,6 +1,9 @@
 import Vue from "vue"
 import Vuex from "vuex"
 import ws from "../websocket"
+import User from "../models/User"
+import TextMessage from "../models/TextMessage"
+import UUID from "../util/Uuid"
 
 Vue.use(Vuex)
 
@@ -23,7 +26,16 @@ export const store = new Vuex.Store({
     setCurrentUser: (state, user) => state.currentUser = user,
     addUser: (state, user) => state.users.push(user),
     newMessage: (state, message) => state.messages.push(message),
-    setSessions: (state, users) => state.users = users
+    setSessions: (state, users) => state.users = users,
+    messageAck: (state, messageId) => {
+      let message = state.messages.find((m) => m.messageId === messageId)
+
+      if(message) {
+        let index = state.messages.findIndex((m) => m.messageId === messageId)
+        message.state = "send"
+        state.messages.splice(index, 1, message)
+      }
+    }
   },
   actions: {
     setNickname: (context, value) => context.commit("setNickname", value),
@@ -35,10 +47,16 @@ export const store = new Vuex.Store({
         console.log(`User ${user.nickname} already exists`)
       }
     },
-    newMessage: (context, message) => {
+    sendMessage: (context, message) => {
       if (ws.isConnected()) {
-        ws.send(message.text)
-        message.state = "sent"
+        let userId = message.sender.userId
+        let payload = {
+          userId: userId,
+          body: message.toLeanMessage()
+        }
+
+        console.log(payload)
+        ws.send(JSON.stringify(payload))
       } else {
         message.state = "not_sent"
         ws.disconnect()
@@ -47,8 +65,8 @@ export const store = new Vuex.Store({
       context.commit('newMessage', message)
     },
     receiveMessage: (context, message) => {
-      console.log("Got message")
-      console.log(message)
+      // console.log("Got message")
+      // console.log(message)
 
       let response = JSON.parse(message)
 
@@ -61,18 +79,27 @@ export const store = new Vuex.Store({
           context.commit("setCurrentUser", currentUser)
 
           const pingInterval = 5000
-          const that = this
 
           clearInterval(pingInterval)
           setInterval(() => store.dispatch("ping"), pingInterval)
 
           break;
         case "PONG":
-          console.log("PONG")
+          //console.log("PONG")
           break;
         case "PLAIN":
           console.log(response.body)
+          message = new TextMessage(new User(10000000, "server"), response.body.PlainMessage.text)
+          context.commit('newMessage', message)
           break;
+        case "ACK":
+          let messageId = response.body.AckMessage.messageId
+          console.log(context.state.messages)
+          context.commit('messageAck', messageId)
+          break;
+
+        case "ERROR":
+          console.log(response.body)
         default: console.log("Unknown event " + response.event)
       }
     },
